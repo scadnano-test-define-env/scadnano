@@ -9,9 +9,11 @@ jobs:
   deploy:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout main branch
+        uses: actions/checkout@v2
 
-      - uses: actions/checkout@v2
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v2
         with:
           ref: gh-pages
           path: gh-pages-repo
@@ -27,9 +29,9 @@ jobs:
       - name: Setup Dart SDK Step 4
         run: sudo sh -c 'wget -qO- https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > /etc/apt/sources.list.d/dart_stable.list'
       - name: Setup Dart SDK Step 5
-        run: wget -O /tmp/dart_2.9.3-1_amd64.deb https://storage.googleapis.com/dart-archive/channels/stable/release/2.9.3/linux_packages/dart_2.9.3-1_amd64.deb
+        run: wget -O /tmp/dart_2.13.4-1_amd64.deb https://storage.googleapis.com/dart-archive/channels/stable/release/2.13.4/linux_packages/dart_2.13.4-1_amd64.deb
       - name: Setup Dart SDK Step 6
-        run: sudo apt install /tmp/dart_2.9.3-1_amd64.deb
+        run: sudo apt install /tmp/dart_2.13.4-1_amd64.deb
       - name: Install dependencies
         run: PATH="$PATH:/usr/lib/dart/bin" pub get
         
@@ -38,13 +40,13 @@ jobs:
 
 
       - name: Build into gh-pages repo
-        run: PATH="$PATH:/usr/lib/dart/bin" pub global run webdev build -o web:/tmp/scadnano ; cp -r /tmp/scadnano/* gh-pages-repo
+        run: PATH="$PATH:/usr/lib/dart/bin" pub global run webdev build -o web:/tmp/scadnano -- '--define=build_web_compilers:ddc=environment={"SCADNANO_PROD":true}' ; cp -r /tmp/scadnano/* gh-pages-repo
       - name: Retrieve version
         run: echo "VERSION=$(cat lib/src/constants.dart | grep  'const String CURRENT_VERSION = .*' | grep -oP '\d+\.\d+\.\d+')"  >> $GITHUB_ENV
-      - name: Build into gh-pages-repo/VERSION
+      - name: Copy build into gh-pages-repo/VERSION
         run: |
          if [ "$VERSION" != "" ]; then
-            PATH="$PATH:/usr/lib/dart/bin" pub global run webdev build -o web:gh-pages-repo/v$VERSION
+            cp -r /tmp/scadnano/* gh-pages-repo/v$VERSION
          else
             echo "::warning deploying VERSION skipped because VERSION number could not be found"
          fi

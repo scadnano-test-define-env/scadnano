@@ -38,7 +38,8 @@ import 'actions/actions.dart' as actions;
 // global variable for whole program
 App app;
 
-const USE_REDUX_DEV_TOOLS = String.fromEnvironment('SCADNANO_PROD') != 'true';
+const SCADNANO_PROD = bool.fromEnvironment('SCADNANO_PROD');
+const USE_REDUX_DEV_TOOLS = !SCADNANO_PROD;
 // const USE_REDUX_DEV_TOOLS = false;
 
 const RUN_TEST_CODE_INSTEAD_OF_APP = false;
@@ -103,9 +104,11 @@ class App {
     AppState state = DEFAULT_AppState;
 
     if (USE_REDUX_DEV_TOOLS) {
+      print('SCADNANO_PROD = "${SCADNANO_PROD}", so Redux Devtools enabled; disable it to boost performance');
       var middleware_plus = all_middleware + [overReactReduxDevToolsMiddleware];
       store = DevToolsStore<AppState>(app_state_reducer, initialState: state, middleware: middleware_plus);
     } else {
+      print('SCADNANO_PROD = "${SCADNANO_PROD}", so Redux Devtools disabled');
       store = Store<AppState>(app_state_reducer, initialState: state, middleware: all_middleware);
     }
 
